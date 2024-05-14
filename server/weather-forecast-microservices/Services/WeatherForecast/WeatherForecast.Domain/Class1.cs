@@ -1,4 +1,4 @@
-﻿namespace EventBus
+﻿namespace WeatherForecast.Domain
 {
     public class Class1
     {
