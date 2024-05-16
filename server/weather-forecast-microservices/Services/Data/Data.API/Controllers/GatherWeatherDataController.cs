@@ -70,5 +70,21 @@ namespace MasstransitRabbitMQConsumer.Controllers
             }
         }
 
+        [HttpPost("getdailyweatherbylonandlat")]
+        public async Task<IActionResult> GetDailyWeatherData(string latitude, string longitude, int count)
+        {
+            try
+            {
+                var version = "data/2.5/";
+                var response = await _httpClient.GetAsync($"{version}forecast?lat={latitude}&lon={longitude}&cnt={count}&appid={apiKey}&units=metric");
+                response.EnsureSuccessStatusCode();
+                var responseData = await response.Content.ReadAsStringAsync();
+                return Ok(responseData);
+            }
+            catch (HttpRequestException ex)
+            {
+                return StatusCode(500, $"Error retrieving city data: {ex.Message}");
+            }
+        }
     }
 }
