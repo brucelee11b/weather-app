@@ -2,14 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using WeatherForecast.Domain.Entity;
 
-namespace WeatherForecast.Domain.Entity
+namespace WeatherForecast.Infrastructure.RepoDto
 {
-	public class WheatherForest
+	public class WheatherSearchDto
 	{
 		public Coords coord { get; set; }
 		public List<Weathers> weather { get; set; }
+
+		[JsonPropertyName("base")]
 		public string Base { get; set; }
 		public Mains main { get; set; }
 		public float visibility { get; set; }
@@ -23,4 +27,3 @@ namespace WeatherForecast.Domain.Entity
 		public float cod { get; set; }
 	}
 }
-

@@ -19,7 +19,7 @@ namespace MasstransitRabbitMQConsumer.Controllers
             _httpClient.BaseAddress = new Uri("https://api.openweathermap.org/"); // Thay đổi thành URL của hệ thống thứ ba
         }
 
-        [HttpPost("getcitylongandlatinfo")]
+        [HttpGet("getcitylongandlatinfo")]
         public async Task<IActionResult> GetCityInfo(string cityName, int num)
         {
             try
@@ -53,7 +53,7 @@ namespace MasstransitRabbitMQConsumer.Controllers
             }
         }
 
-        [HttpPost("getweatherbylonandlat")]
+        [HttpGet("getweatherbylonandlat")]
         public async Task<IActionResult> GetCityInfo(string latitude, string longitude)
         {
             try
@@ -70,7 +70,7 @@ namespace MasstransitRabbitMQConsumer.Controllers
             }
         }
 
-        [HttpPost("getdailyweatherbylonandlat")]
+        [HttpGet("getdailyweatherbylonandlat")]
         public async Task<IActionResult> GetDailyWeatherData(string latitude, string longitude, int count)
         {
             try

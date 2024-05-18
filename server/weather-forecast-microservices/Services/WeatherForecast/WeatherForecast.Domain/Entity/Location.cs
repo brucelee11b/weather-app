@@ -6,15 +6,12 @@ using System.Threading.Tasks;
 
 namespace WeatherForecast.Domain.Entity
 {
-	public class City
+	public class Location
 	{
-		public float id { get; set; }
 		public string name { get; set; }
-		public Coords coord { get; set; }
+		public float lat { get; set; }
+		public float lon { get; set; }
 		public string country { get; set; }
-		public float population { get; set; }
-		public float timezone { get; set; }
-		public float sunrise { get; set; }
-		public float sunset { get; set; }
+		public string state { get; set; }
 	}
 }
