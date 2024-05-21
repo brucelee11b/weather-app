@@ -1,63 +1,67 @@
-const baseUrl = 'https://api.openweathermap.org/data/2.5';
+const baseUrl = 'http://localhost:5001';
 
 export const fetchWeatherData = async (
   city: string | { lat: number; lng: number }
 ) => {
-  let url = `${baseUrl}/weather?q=${city}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
-
+  console.log(city);
+  let url = '';
   if (typeof city === 'object') {
-    url = `${baseUrl}/weather?lat=${city.lat}&lon=${city.lng}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
+    url = `${baseUrl}/current-weather?lat=${city.lat}&lon=${city.lng}`;
   }
-  // return await (await fetch(url)).json();
 
-  const result = {
-    coord: {
-      lon: 105.5408,
-      lat: 21.0149,
-    },
-    weather: [
-      {
-        id: 802,
-        main: 'Clouds',
-        description: 'scattered clouds',
-        icon: '03d',
-      },
-    ],
-    base: 'stations',
-    main: {
-      temp: 303.14,
-      feels_like: 305.57,
-      temp_min: 303.14,
-      temp_max: 303.14,
-      pressure: 1010,
-      humidity: 58,
-      sea_level: 1010,
-      grnd_level: 1008,
-    },
-    visibility: 10000,
-    wind: {
-      speed: 2.51,
-      deg: 37,
-      gust: 2.46,
-    },
-    clouds: {
-      all: 45,
-    },
-    dt: 1715586235,
-    sys: {
-      type: 1,
-      id: 9308,
-      country: 'VN',
-      sunrise: 1715552463,
-      sunset: 1715599646,
-    },
-    timezone: 25200,
-    id: 1570565,
-    name: 'Phu Huu',
-    cod: 200,
-  };
+  // if (typeof city === 'object') {
+  //   url = `${baseUrl}/weather?lat=${city.lat}&lon=${city.lng}&appid=${process.env.REACT_APP_WEATHER_API_KEY}`;
+  // }
+  return await (await fetch(url)).json();
 
-  return result;
+  // const result = {
+  //   coord: {
+  //     lon: 105.5408,
+  //     lat: 21.0149,
+  //   },
+  //   weather: [
+  //     {
+  //       id: 802,
+  //       main: 'Clouds',
+  //       description: 'scattered clouds',
+  //       icon: '03d',
+  //     },
+  //   ],
+  //   base: 'stations',
+  //   main: {
+  //     temp: 303.14,
+  //     feels_like: 305.57,
+  //     temp_min: 303.14,
+  //     temp_max: 303.14,
+  //     pressure: 1010,
+  //     humidity: 58,
+  //     sea_level: 1010,
+  //     grnd_level: 1008,
+  //   },
+  //   visibility: 10000,
+  //   wind: {
+  //     speed: 2.51,
+  //     deg: 37,
+  //     gust: 2.46,
+  //   },
+  //   clouds: {
+  //     all: 45,
+  //   },
+  //   dt: 1715586235,
+  //   sys: {
+  //     type: 1,
+  //     id: 9308,
+  //     country: 'VN',
+  //     sunrise: 1715552463,
+  //     sunset: 1715599646,
+  //   },
+  //   timezone: 25200,
+  //   id: 1570565,
+  //   name: 'Phu Huu',
+  //   cod: 200,
+  // };
+
+  // return result;
 };
 
 export const fetchExtendedForecastData = async (
