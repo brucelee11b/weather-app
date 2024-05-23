@@ -1,4 +1,5 @@
-using WeatherForecast.API.Services;
+using WeatherForecast.API.Service;
+using RabbitMQ.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,9 @@ builder.Services.AddCors(options =>
         }
     );
 });
+
+// RabbitMQ
+builder.Services.AddMessageBroker(builder.Configuration);
 
 var app = builder.Build();
 

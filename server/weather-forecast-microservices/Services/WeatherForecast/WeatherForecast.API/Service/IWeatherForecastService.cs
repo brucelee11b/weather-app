@@ -1,6 +1,6 @@
 ﻿using WeatherForecast.API.Model;
 
-namespace WeatherForecast.API.Services
+namespace WeatherForecast.API.Service
 {
     public interface IWeatherForecastService
     {
