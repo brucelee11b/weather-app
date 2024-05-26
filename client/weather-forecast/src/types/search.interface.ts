@@ -11,3 +11,8 @@ export interface PlaceType {
   description: string;
   structured_formatting: StructuredFormatting;
 }
+export interface PlaceResponse {
+  name: string;
+  lat: number;
+  lon: number;
+}

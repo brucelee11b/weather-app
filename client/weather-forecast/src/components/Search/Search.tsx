@@ -9,11 +9,12 @@ import { fetchWeather } from 'store/fetchWeather';
 import { fetchCities } from 'services/placeSuggestion';
 import { ThunkDispatch } from '@reduxjs/toolkit';
 import './index.css';
+import { PlaceResponse } from 'types/search.interface';
 
 const Search = () => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
   const suggestionRef = useRef(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<PlaceResponse[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -23,6 +24,8 @@ const Search = () => {
     }
     setShowSuggestions(true);
     fetchCities(searchTerm).then((res) => {
+      console.log('res ', res);
+
       setSuggestions(res);
     });
   }, [searchTerm]);
@@ -31,13 +34,12 @@ const Search = () => {
 
   const onSearchInputChanged = (e: any) => {
     setSearchTerm(e.target.value);
-    console.log(searchTerm);
   };
   const showPosition = (position: any) => {
     dispatch(
       fetchWeather({
         lat: position.coords.latitude,
-        lng: position.coords.longitude,
+        lon: position.coords.longitude,
       })
     );
   };
@@ -68,7 +70,9 @@ const Search = () => {
           {suggestions?.slice(0, 6)?.map((s, i) => (
             <Suggestion
               key={i}
-              label={s}
+              label={s.name}
+              lat={s.lat}
+              lon={s.lon}
               hideSuggestionFn={() => {
                 setShowSuggestions(false);
               }}

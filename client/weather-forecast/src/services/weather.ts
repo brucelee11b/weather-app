@@ -1,11 +1,13 @@
 const baseUrl = 'http://localhost:5001';
 
 export const fetchWeatherData = async (
-  city: string | { lat: number; lng: number }
+  city: string | { lat: number; lon: number }
 ) => {
+  console.log(city);
+
   let url = '';
   if (typeof city === 'object') {
-    url = `${baseUrl}/current-weather?lat=${city.lat}&lon=${city.lng}`;
+    url = `${baseUrl}/current-weather?lat=${city.lat}&lon=${city.lon}`;
   }
 
   // if (typeof city === 'object') {
@@ -64,11 +66,11 @@ export const fetchWeatherData = async (
 };
 
 export const fetchExtendedForecastData = async (
-  city: string | { lat: number; lng: number }
+  city: string | { lat: number; lon: number }
 ) => {
   let url = '';
   if (typeof city === 'object') {
-    url = `${baseUrl}/weather-forecast?lat=${city.lat}&lon=${city.lng}`;
+    url = `${baseUrl}/weather-forecast?lat=${city.lat}&lon=${city.lon}`;
   }
 
   return await (await fetch(url)).json();

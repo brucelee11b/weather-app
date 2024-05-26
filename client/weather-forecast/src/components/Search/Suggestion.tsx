@@ -6,13 +6,15 @@ import { ThunkDispatch } from '@reduxjs/toolkit';
 interface ISuggestionProps {
   label: string;
   hideSuggestionFn: Function;
+  lat: number;
+  lon: number;
 }
 
 const Suggestion: React.FC<ISuggestionProps> = (props) => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
   const onClick = () => {
-    dispatch(fetchWeather(props.label.split(',')[0]));
+    dispatch(fetchWeather({ lat: props.lat, lon: props.lon }));
     setTimeout(() => {
       props.hideSuggestionFn();
     }, 400);

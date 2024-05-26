@@ -8,7 +8,7 @@ import { setIsInitial, setIsLoading } from './reducers/appReducer';
 export const fetchWeather = createAsyncThunk(
   'weather/fetchWeather',
   async (
-    city: string | { lat: number; lng: number },
+    city: string | { lat: number; lon: number },
     { dispatch, rejectWithValue, fulfillWithValue }
   ) => {
     dispatch(setIsLoading(true));
