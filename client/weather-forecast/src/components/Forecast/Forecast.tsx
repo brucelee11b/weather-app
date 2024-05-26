@@ -21,8 +21,8 @@ const Forecast = () => {
             <ForecastItem
               key={i}
               day={item.day}
-              high={item.temp.temp_max}
-              low={item.temp.temp_min}
+              high={item.temp.tempMax}
+              low={item.temp.tempMin}
               weatherCode={item.weather.id}
               main={item.weather.main}
             />

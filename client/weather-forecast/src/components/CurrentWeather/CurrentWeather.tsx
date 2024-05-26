@@ -55,18 +55,18 @@ const CurrentWeather = () => {
 
         <div className='current-weather-info'>
           <p className='feel-like'>
-            Feels like <Temperature value={weather.main.feels_like} />
+            Feels like <Temperature value={weather.main.feelsLike} />
             <sup>&deg;</sup>
           </p>
           <div className='high-low-container'>
             <div className='weather-degree'>
               <HighIcon />
-              <Temperature value={weather.main.temp_max} />
+              <Temperature value={weather.main.tempMax} />
               <sup>&deg;</sup>
             </div>
             <div className='weather-degree'>
               <LowIcon />
-              <Temperature value={weather.main.temp_min} />
+              <Temperature value={weather.main.tempMin} />
               <sup>&deg;</sup>
             </div>
           </div>

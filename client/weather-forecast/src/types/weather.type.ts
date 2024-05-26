@@ -7,9 +7,9 @@ export type WeatherData = {
   };
   main: {
     temp: number;
-    feels_like: number;
-    temp_min: number;
-    temp_max: number;
+    feelsLike: number;
+    tempMin: number;
+    tempMax: number;
     pressure: number;
     humidity: number;
   };
@@ -28,8 +28,8 @@ export type WeatherData = {
 export type ExtendedForecastData = {
   day: string;
   temp: {
-    temp_min: number;
-    temp_max: number;
+    tempMin: number;
+    tempMax: number;
   };
   weather: {
     id: number;

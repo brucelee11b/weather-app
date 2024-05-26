@@ -2,7 +2,6 @@
 using RabbitMQ.Client.Events;
 using RabbitMQ.Services;
 using System.Text;
-using System.Threading.Channels;
 using WeatherForecast.API.Model;
 using WeatherForecast.API.Utility;
 
@@ -19,8 +18,9 @@ namespace WeatherForecast.API.Service
             this._httpClient.BaseAddress = new Uri("http://localhost:5005/");
             _rabbitMqService = rabbitMqService;
         }
-        const string _queueName = "weather-queue";
-        const string _exchangeName = "weather-exchange";
+
+        const string currentWeatherQuece = "current-weather-queue";
+        const string weatherForecastQueue = "weather-forecast-queue";
 
         public async Task<CurrentWeather> GetCurrentWeather(string lat, string lon)
         {
@@ -34,7 +34,7 @@ namespace WeatherForecast.API.Service
                 using var model = connection.CreateModel();
 
                 var replyQueue = model.QueueDeclare("", exclusive: true);
-                model.QueueDeclare("request-queue", exclusive: false);
+                model.QueueDeclare(currentWeatherQuece, exclusive: false);
 
                 var consumer = new AsyncEventingBasicConsumer(model);
 
@@ -55,12 +55,12 @@ namespace WeatherForecast.API.Service
                 properties.ReplyTo = replyQueue.QueueName;
                 properties.CorrelationId = Guid.NewGuid().ToString();
 
-                var message = "21.0472343;105.7938184";
+                var message = $"{lat};{lon}";
                 var body = Encoding.UTF8.GetBytes(message);
 
                 Console.WriteLine($"Sending Request: {properties.CorrelationId} - message: {message}");
 
-                model.BasicPublish("", "request-queue", properties, body);
+                model.BasicPublish("", currentWeatherQuece, properties, body);
                 // Rabbit MQ
 
                 return await tcs.Task;
@@ -75,11 +75,44 @@ namespace WeatherForecast.API.Service
         {
             try
             {
-                var response = await this._httpClient.GetAsync($"daily?lat={lat}&lon={lon}");
-                response.EnsureSuccessStatusCode();
+                var tcs = new TaskCompletionSource<DailyWeather>();
 
-                var responseData = new DailyWeather();
-                return responseData;
+                // Rabbit MQ
+                using var connection = _rabbitMqService.CreateChannel();
+
+                using var model = connection.CreateModel();
+
+                var replyQueue = model.QueueDeclare("", exclusive: true);
+                model.QueueDeclare(weatherForecastQueue, exclusive: false);
+
+                var consumer = new AsyncEventingBasicConsumer(model);
+
+                consumer.Received += async (model, ea) =>
+                {
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
+                    Console.WriteLine($"Reply Recieved: {message}");
+
+                    var result = StringExtensions.DeserializeObject<DailyWeather>(message);
+                    await Task.CompletedTask;
+                    tcs.SetResult(result);
+                };
+
+                model.BasicConsume(queue: replyQueue.QueueName, autoAck: true, consumer: consumer);
+
+                var properties = model.CreateBasicProperties();
+                properties.ReplyTo = replyQueue.QueueName;
+                properties.CorrelationId = Guid.NewGuid().ToString();
+
+                var message = $"{lat};{lon}";
+                var body = Encoding.UTF8.GetBytes(message);
+
+                Console.WriteLine($"Sending Request: {properties.CorrelationId} - message: {message}");
+
+                model.BasicPublish("", weatherForecastQueue, properties, body);
+                // Rabbit MQ
+
+                return await tcs.Task;
             }
             catch (Exception)
             {
