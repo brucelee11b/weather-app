@@ -1,10 +1,10 @@
 namespace Worker
 {
-    public class Worker : BackgroundService
+    public class Workers : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
+        private readonly ILogger<Workers> _logger;
 
-        public Worker(ILogger<Worker> logger)
+        public Workers(ILogger<Workers> logger)
         {
             _logger = logger;
         }
