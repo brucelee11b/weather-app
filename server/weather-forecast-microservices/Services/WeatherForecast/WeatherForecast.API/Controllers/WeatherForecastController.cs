@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Text;
 using WeatherForecast.API.Service;
 
 namespace WeatherForecast.API.Controllers
@@ -38,6 +39,19 @@ namespace WeatherForecast.API.Controllers
             {
                 return StatusCode(500, $"Error: {ex.Message}");
             }
+        }
+
+        private static string GenarateCacheKeyFromRequest(HttpRequest request)
+        {
+            var keyBuilder = new StringBuilder();
+            keyBuilder.Append($"{request.Path}");
+
+            foreach (var (key, value) in request.Query.OrderBy(x => x.Key))
+            {
+                keyBuilder.Append($"|{key}-{value}");
+            }
+
+            return keyBuilder.ToString();
         }
     }
 }

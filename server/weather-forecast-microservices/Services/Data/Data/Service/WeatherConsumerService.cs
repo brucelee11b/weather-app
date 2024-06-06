@@ -1,7 +1,10 @@
-﻿using RabbitMQ.Client;
+﻿using Newtonsoft.Json;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Services;
+using System.Reflection.PortableExecutable;
 using System.Text;
+using Worker.Repository;
 
 namespace Data.Service
 {
@@ -28,7 +31,7 @@ namespace Data.Service
             _model.QueueDeclare(currentWeatherQueue, exclusive: false);
 
             var consumer = new AsyncEventingBasicConsumer(_model);
-
+            var caching = new Caching();
             consumer.Received += async (model, ea) =>
             {
                 try
@@ -43,6 +46,25 @@ namespace Data.Service
                     var responseData = await response.Content.ReadAsStringAsync();
 
                     var responseBody = Encoding.UTF8.GetBytes(responseData);
+
+                    if (!string.IsNullOrEmpty(responseData))
+                    {
+                        var result = caching.SetCacheResponse("GetCurrentWeatherData", responseBody);
+                        if (!result)
+                        {
+                            Exception exception = new Exception("Set Cache Response Failed");
+                            throw exception;
+                        }
+                    }
+                    else
+                    {
+                        var result = caching.RemoveCache("GetCurrentWeatherData");
+                        if (!result)
+                        {
+                            Exception exception = new Exception("Remove Cache Response Failed");
+                            throw exception;
+                        }
+                    }
 
                     _model.BasicPublish("", ea.BasicProperties.ReplyTo, null, responseBody);
                     await Task.CompletedTask;
@@ -63,6 +85,7 @@ namespace Data.Service
             _model.QueueDeclare(weatherForecastQueue, exclusive: false);
 
             var consumer = new AsyncEventingBasicConsumer(_model);
+            var caching = new Caching();
 
             consumer.Received += async (model, ea) =>
             {
@@ -78,6 +101,25 @@ namespace Data.Service
                     var responseData = await response.Content.ReadAsStringAsync();
 
                     var responseBody = Encoding.UTF8.GetBytes(responseData);
+
+                    if (!string.IsNullOrEmpty(responseData))
+                    {
+                        var result = caching.SetCacheResponse("GetDailyWeatherData", responseBody);
+                        if (!result)
+                        {
+                            Exception exception = new Exception("Set Cache Response Failed");
+                            throw exception;
+                        }
+                    }
+                    else
+                    {
+                        var result = caching.RemoveCache("GetDailyWeatherData");
+                        if (!result)
+                        {
+                            Exception exception = new Exception("Remove Cache Response Failed");
+                            throw exception;
+                        }
+                    }
 
                     _model.BasicPublish("", ea.BasicProperties.ReplyTo, null, responseBody);
                     await Task.CompletedTask;
