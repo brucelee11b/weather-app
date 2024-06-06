@@ -2,7 +2,7 @@
 {
     public interface IWeatherConsumerService
     {
-        public Task GetCurrentWeatherData();
+        public Task GetCurrentWeatherData(string lat, string lon);
         public Task GetDailyWeatherData();
     }
 }

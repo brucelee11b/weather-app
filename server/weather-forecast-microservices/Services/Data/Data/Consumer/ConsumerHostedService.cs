@@ -13,7 +13,7 @@ namespace Data.Consumer
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await _weatherDataService.GetCurrentWeatherData();
+            await _weatherDataService.GetCurrentWeatherData("0", "0");
             await _weatherDataService.GetDailyWeatherData();
         }
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Data.Service;
+using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using WeatherForecast.API.Service;
 
@@ -8,9 +9,11 @@ namespace WeatherForecast.API.Controllers
     public class WeatherForecastController : ControllerBase
     {
         private readonly IWeatherForecastService _weatherForecastService;
-        public WeatherForecastController(IWeatherForecastService weatherForecastService)
+        private readonly IWeatherConsumerService _weatherConsumerService;
+        public WeatherForecastController(IWeatherForecastService weatherForecastService, IWeatherConsumerService weatherConsumerService)
         {
             this._weatherForecastService = weatherForecastService;
+            this._weatherConsumerService = weatherConsumerService;
         }
 
         [HttpGet("current-weather")]

@@ -3,6 +3,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Services;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Worker.Repository;
 
@@ -14,24 +15,47 @@ namespace Data.Service
         private readonly string apiKey = "a138902a1200a09b2c57e0119815c601";
         private readonly IModel _model;
         private readonly IConnection _connection;
+        private readonly ICaching _caching;
+
         const string currentWeatherQueue = "current-weather-queue";
         const string weatherForecastQueue = "weather-forecast-queue";
 
-        public WeatherConsumerService(IRabbitMQService rabbitMqService)
+        public WeatherConsumerService(IRabbitMQService rabbitMqService, ICaching caching)
         {
             _connection = rabbitMqService.CreateChannel();
             _model = _connection.CreateModel();
-
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri("https://api.openweathermap.org/");
+            this._caching = caching;
         }
 
-        public async Task GetCurrentWeatherData()
+        public async Task GetCurrentWeatherData(string lat, string lon)
         {
             _model.QueueDeclare(currentWeatherQueue, exclusive: false);
 
             var consumer = new AsyncEventingBasicConsumer(_model);
-            var caching = new Caching();
+
+            var version = "data/2.5/";
+            var response = await _httpClient.GetAsync($"{version}weather?lat={lat}&lon={lon}&appid={apiKey}");
+            response.EnsureSuccessStatusCode();
+            var responseData = await response.Content.ReadAsStringAsync();
+
+            var responseBody = Encoding.UTF8.GetBytes(responseData);
+
+            var currentWeatherData = this._caching.GetCacheResponse("GetCurrentWeatherData");
+            if (string.IsNullOrEmpty(currentWeatherData))
+            {
+                var result = this._caching.SetCacheResponse("GetCurrentWeatherData", responseBody);
+                if (!result)
+                {
+                    Exception exception = new Exception("Set Cache Response Failed");
+                    throw exception;
+                }
+            }
+            else
+            {
+                responseBody = Encoding.UTF8.GetBytes(currentWeatherData);
+            }
             consumer.Received += async (model, ea) =>
             {
                 try
@@ -40,31 +64,7 @@ namespace Data.Service
 
                     var input = Encoding.UTF8.GetString(ea.Body.ToArray()).Split(';');
 
-                    var version = "data/2.5/";
-                    var response = await _httpClient.GetAsync($"{version}weather?lat={input[0]}&lon={input[1]}&appid={apiKey}");
-                    response.EnsureSuccessStatusCode();
-                    var responseData = await response.Content.ReadAsStringAsync();
-
-                    var responseBody = Encoding.UTF8.GetBytes(responseData);
-
-                    if (!string.IsNullOrEmpty(responseData))
-                    {
-                        var result = caching.SetCacheResponse("GetCurrentWeatherData", responseBody);
-                        if (!result)
-                        {
-                            Exception exception = new Exception("Set Cache Response Failed");
-                            throw exception;
-                        }
-                    }
-                    else
-                    {
-                        var result = caching.RemoveCache("GetCurrentWeatherData");
-                        if (!result)
-                        {
-                            Exception exception = new Exception("Remove Cache Response Failed");
-                            throw exception;
-                        }
-                    }
+                    
 
                     _model.BasicPublish("", ea.BasicProperties.ReplyTo, null, responseBody);
                     await Task.CompletedTask;
@@ -85,7 +85,6 @@ namespace Data.Service
             _model.QueueDeclare(weatherForecastQueue, exclusive: false);
 
             var consumer = new AsyncEventingBasicConsumer(_model);
-            var caching = new Caching();
 
             consumer.Received += async (model, ea) =>
             {
@@ -104,7 +103,7 @@ namespace Data.Service
 
                     if (!string.IsNullOrEmpty(responseData))
                     {
-                        var result = caching.SetCacheResponse("GetDailyWeatherData", responseBody);
+                        var result = this._caching.SetCacheResponse("GetDailyWeatherData", responseBody);
                         if (!result)
                         {
                             Exception exception = new Exception("Set Cache Response Failed");
@@ -113,7 +112,7 @@ namespace Data.Service
                     }
                     else
                     {
-                        var result = caching.RemoveCache("GetDailyWeatherData");
+                        var result = this._caching.RemoveCache("GetDailyWeatherData");
                         if (!result)
                         {
                             Exception exception = new Exception("Remove Cache Response Failed");
