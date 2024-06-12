@@ -37,7 +37,7 @@ namespace Worker
                 // Gọi API khi khởi động
                 await CallApiAsync("21.0294498", "105.8544441", "10");
 
-                await Task.Delay(5000, stoppingToken);
+                await Task.Delay(20000, stoppingToken);
             }
         }
 
