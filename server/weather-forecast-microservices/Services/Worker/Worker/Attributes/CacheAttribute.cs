@@ -1,10 +1,11 @@
-﻿using Data.Configuration;
+﻿using Worker.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Text;
 using Worker.IServices;
+using Microsoft.AspNetCore.Http;
 
-namespace DivvyBikesController.Attributes
+namespace Worker.Attributes
 {
     public class CacheAttribute : Attribute, IAsyncActionFilter
     {

@@ -15,7 +15,7 @@ namespace Data.Service
         private readonly string apiKey = "a138902a1200a09b2c57e0119815c601";
         private readonly IModel _model;
         private readonly IConnection _connection;
-        private readonly ICaching _caching;
+        //private readonly ICaching _caching;
 
         const string currentWeatherQueue = "current-weather-queue";
         const string weatherForecastQueue = "weather-forecast-queue";
@@ -26,7 +26,7 @@ namespace Data.Service
             _model = _connection.CreateModel();
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri("https://api.openweathermap.org/");
-            this._caching = caching;
+            //this._caching = caching;
         }
 
         public async Task GetCurrentWeatherData(string lat, string lon)
@@ -42,20 +42,20 @@ namespace Data.Service
 
             var responseBody = Encoding.UTF8.GetBytes(responseData);
 
-            var currentWeatherData = this._caching.GetCacheResponse("GetCurrentWeatherData");
-            if (string.IsNullOrEmpty(currentWeatherData))
-            {
-                var result = this._caching.SetCacheResponse("GetCurrentWeatherData", responseBody);
-                if (!result)
-                {
-                    Exception exception = new Exception("Set Cache Response Failed");
-                    throw exception;
-                }
-            }
-            else
-            {
-                responseBody = Encoding.UTF8.GetBytes(currentWeatherData);
-            }
+            //var currentWeatherData = this._caching.GetCacheResponse("GetCurrentWeatherData");
+            //if (string.IsNullOrEmpty(currentWeatherData))
+            //{
+            //    var result = this._caching.SetCacheResponse("GetCurrentWeatherData", responseBody);
+            //    if (!result)
+            //    {
+            //        Exception exception = new Exception("Set Cache Response Failed");
+            //        throw exception;
+            //    }
+            //}
+            //else
+            //{
+            //    responseBody = Encoding.UTF8.GetBytes(currentWeatherData);
+            //}
             consumer.Received += async (model, ea) =>
             {
                 try
@@ -101,24 +101,24 @@ namespace Data.Service
 
                     var responseBody = Encoding.UTF8.GetBytes(responseData);
 
-                    if (!string.IsNullOrEmpty(responseData))
-                    {
-                        var result = this._caching.SetCacheResponse("GetDailyWeatherData", responseBody);
-                        if (!result)
-                        {
-                            Exception exception = new Exception("Set Cache Response Failed");
-                            throw exception;
-                        }
-                    }
-                    else
-                    {
-                        var result = this._caching.RemoveCache("GetDailyWeatherData");
-                        if (!result)
-                        {
-                            Exception exception = new Exception("Remove Cache Response Failed");
-                            throw exception;
-                        }
-                    }
+                    //if (!string.IsNullOrEmpty(responseData))
+                    //{
+                    //    var result = this._caching.SetCacheResponse("GetDailyWeatherData", responseBody);
+                    //    if (!result)
+                    //    {
+                    //        Exception exception = new Exception("Set Cache Response Failed");
+                    //        throw exception;
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    var result = this._caching.RemoveCache("GetDailyWeatherData");
+                    //    if (!result)
+                    //    {
+                    //        Exception exception = new Exception("Remove Cache Response Failed");
+                    //        throw exception;
+                    //    }
+                    //}
 
                     _model.BasicPublish("", ea.BasicProperties.ReplyTo, null, responseBody);
                     await Task.CompletedTask;

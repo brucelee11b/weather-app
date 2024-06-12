@@ -1,8 +1,7 @@
-﻿using Worker.Configuration;
-using Worker.Service;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
+using Worker.Configuration;
 using Worker.IServices;
-using Data.Configuration;
+using Worker.Service;
 
 namespace Worker.Installers
 {

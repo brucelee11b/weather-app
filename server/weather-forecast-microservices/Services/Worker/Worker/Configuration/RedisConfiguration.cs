@@ -1,4 +1,4 @@
-﻿namespace Data.Configuration
+﻿namespace Worker.Configuration
 {
     public class RedisConfiguration
     {
