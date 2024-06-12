@@ -9,140 +9,125 @@ using Worker.Repository;
 
 namespace Data.Service
 {
-    public class WeatherConsumerService : IWeatherConsumerService, IDisposable
-    {
-        private readonly HttpClient _httpClient;
-        private readonly string apiKey = "a138902a1200a09b2c57e0119815c601";
-        private readonly IModel _model;
-        private readonly IConnection _connection;
-        //private readonly ICaching _caching;
+	public class WeatherConsumerService : IWeatherConsumerService, IDisposable
+	{
+		private readonly IModel _model;
+		private readonly IConnection _connection;
+		private readonly ICaching _caching;
 
-        const string currentWeatherQueue = "current-weather-queue";
-        const string weatherForecastQueue = "weather-forecast-queue";
+		const string currentWeatherQueue = "current-weather-queue";
+		const string weatherForecastQueue = "weather-forecast-queue";
 
-        public WeatherConsumerService(IRabbitMQService rabbitMqService, ICaching caching)
-        {
-            _connection = rabbitMqService.CreateChannel();
-            _model = _connection.CreateModel();
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri("https://api.openweathermap.org/");
-            //this._caching = caching;
-        }
+		public WeatherConsumerService(IRabbitMQService rabbitMqService, ICaching caching)
+		{
+			_connection = rabbitMqService.CreateChannel();
+			_model = _connection.CreateModel();
+			this._caching = caching;
+		}
 
-        public async Task GetCurrentWeatherData(string lat, string lon)
-        {
-            _model.QueueDeclare(currentWeatherQueue, exclusive: false);
+		public async Task GetCurrentWeatherData(string lat, string lon)
+		{
+			_model.QueueDeclare(currentWeatherQueue, exclusive: false);
 
-            var consumer = new AsyncEventingBasicConsumer(_model);
+			var consumer = new AsyncEventingBasicConsumer(_model);
 
-            var version = "data/2.5/";
-            var response = await _httpClient.GetAsync($"{version}weather?lat={lat}&lon={lon}&appid={apiKey}");
-            response.EnsureSuccessStatusCode();
-            var responseData = await response.Content.ReadAsStringAsync();
+			var currentWeatherData = this._caching.GetCacheResponse("GetCurrentWeatherData");
+			if (string.IsNullOrEmpty(currentWeatherData))
+			{
+				Exception exception = new Exception("Get Cache Response Failed");
+				throw exception;
+			}
 
-            var responseBody = Encoding.UTF8.GetBytes(responseData);
+			var responseBody = Encoding.UTF8.GetBytes(currentWeatherData);
+			consumer.Received += async (model, ea) =>
+			{
+				try
+				{
+					Console.WriteLine($"Received Request: {ea.BasicProperties.CorrelationId} - message: {Encoding.UTF8.GetString(ea.Body.ToArray())}");
 
-            //var currentWeatherData = this._caching.GetCacheResponse("GetCurrentWeatherData");
-            //if (string.IsNullOrEmpty(currentWeatherData))
-            //{
-            //    var result = this._caching.SetCacheResponse("GetCurrentWeatherData", responseBody);
-            //    if (!result)
-            //    {
-            //        Exception exception = new Exception("Set Cache Response Failed");
-            //        throw exception;
-            //    }
-            //}
-            //else
-            //{
-            //    responseBody = Encoding.UTF8.GetBytes(currentWeatherData);
-            //}
-            consumer.Received += async (model, ea) =>
-            {
-                try
-                {
-                    Console.WriteLine($"Received Request: {ea.BasicProperties.CorrelationId} - message: {Encoding.UTF8.GetString(ea.Body.ToArray())}");
+					var input = Encoding.UTF8.GetString(ea.Body.ToArray()).Split(';');
 
-                    var input = Encoding.UTF8.GetString(ea.Body.ToArray()).Split(';');
+					_model.BasicPublish("", ea.BasicProperties.ReplyTo, null, responseBody);
+					await Task.CompletedTask;
+				}
+				catch (Exception ex)
+				{
+					_model.BasicPublish("", ea.BasicProperties.ReplyTo, null, Encoding.UTF8.GetBytes(ex.Message));
+				}
 
-                    
+			};
 
-                    _model.BasicPublish("", ea.BasicProperties.ReplyTo, null, responseBody);
-                    await Task.CompletedTask;
-                }
-                catch (Exception ex)
-                {
-                    _model.BasicPublish("", ea.BasicProperties.ReplyTo, null, Encoding.UTF8.GetBytes(ex.Message));
-                }
+			_model.BasicConsume(queue: currentWeatherQueue, autoAck: true, consumer: consumer);
+			await Task.CompletedTask;
+		}
 
-            };
+		public async Task GetDailyWeatherData()
+		{
+			_model.QueueDeclare(weatherForecastQueue, exclusive: false);
 
-            _model.BasicConsume(queue: currentWeatherQueue, autoAck: true, consumer: consumer);
-            await Task.CompletedTask;
-        }
+			var consumer = new AsyncEventingBasicConsumer(_model);
 
-        public async Task GetDailyWeatherData()
-        {
-            _model.QueueDeclare(weatherForecastQueue, exclusive: false);
+			consumer.Received += async (model, ea) =>
+			{
+				try
+				{
+					Console.WriteLine($"Received Request: {ea.BasicProperties.CorrelationId} - message: {Encoding.UTF8.GetString(ea.Body.ToArray())}");
 
-            var consumer = new AsyncEventingBasicConsumer(_model);
+					var input = Encoding.UTF8.GetString(ea.Body.ToArray()).Split(';');
 
-            consumer.Received += async (model, ea) =>
-            {
-                try
-                {
-                    Console.WriteLine($"Received Request: {ea.BasicProperties.CorrelationId} - message: {Encoding.UTF8.GetString(ea.Body.ToArray())}");
+					//var version = "data/2.5/";
+					//var response = await _httpClient.GetAsync($"{version}forecast?lat={input[0]}&lon={input[1]}&cnt=7&appid={apiKey}");
+					//response.EnsureSuccessStatusCode();
+					//var responseData = await response.Content.ReadAsStringAsync();
 
-                    var input = Encoding.UTF8.GetString(ea.Body.ToArray()).Split(';');
+					//var responseBody = Encoding.UTF8.GetBytes(responseData);
+					var daillyWeatherData = this._caching.GetCacheResponse("GetDailyWeatherData");
+					if(string.IsNullOrEmpty(daillyWeatherData))
+					{
+						Exception exception = new Exception("Get Cache Response Failed");
+						throw exception;
+					}
+					var responseBody = Encoding.UTF8.GetBytes(daillyWeatherData);
+					//if (!string.IsNullOrEmpty(responseData))
+					//{
+					//    var result = this._caching.SetCacheResponse("GetDailyWeatherData", responseBody);
+					//    if (!result)
+					//    {
+					//        Exception exception = new Exception("Set Cache Response Failed");
+					//        throw exception;
+					//    }
+					//}
+					//else
+					//{
+					//    var result = this._caching.RemoveCache("GetDailyWeatherData");
+					//    if (!result)
+					//    {
+					//        Exception exception = new Exception("Remove Cache Response Failed");
+					//        throw exception;
+					//    }
+					//}
 
-                    var version = "data/2.5/";
-                    var response = await _httpClient.GetAsync($"{version}forecast?lat={input[0]}&lon={input[1]}&cnt=7&appid={apiKey}");
-                    response.EnsureSuccessStatusCode();
-                    var responseData = await response.Content.ReadAsStringAsync();
+					_model.BasicPublish("", ea.BasicProperties.ReplyTo, null, responseBody);
+					await Task.CompletedTask;
+				}
+				catch (Exception ex)
+				{
+					_model.BasicPublish("", ea.BasicProperties.ReplyTo, null, Encoding.UTF8.GetBytes(ex.Message));
+				}
 
-                    var responseBody = Encoding.UTF8.GetBytes(responseData);
+			};
 
-                    //if (!string.IsNullOrEmpty(responseData))
-                    //{
-                    //    var result = this._caching.SetCacheResponse("GetDailyWeatherData", responseBody);
-                    //    if (!result)
-                    //    {
-                    //        Exception exception = new Exception("Set Cache Response Failed");
-                    //        throw exception;
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    var result = this._caching.RemoveCache("GetDailyWeatherData");
-                    //    if (!result)
-                    //    {
-                    //        Exception exception = new Exception("Remove Cache Response Failed");
-                    //        throw exception;
-                    //    }
-                    //}
+			_model.BasicConsume(queue: weatherForecastQueue, autoAck: true, consumer: consumer);
+			await Task.CompletedTask;
+		}
 
-                    _model.BasicPublish("", ea.BasicProperties.ReplyTo, null, responseBody);
-                    await Task.CompletedTask;
-                }
-                catch (Exception ex)
-                {
-                    _model.BasicPublish("", ea.BasicProperties.ReplyTo, null, Encoding.UTF8.GetBytes(ex.Message));
-                }
+		public void Dispose()
+		{
+			if (_model.IsOpen)
+				_model.Close();
 
-            };
-
-            _model.BasicConsume(queue: weatherForecastQueue, autoAck: true, consumer: consumer);
-            await Task.CompletedTask;
-        }
-
-        public void Dispose()
-        {
-            if (_model.IsOpen)
-                _model.Close();
-
-            if (_connection.IsOpen)
-                _connection.Close();
-
-            _httpClient?.Dispose();
-        }
-    }
+			if (_connection.IsOpen)
+				_connection.Close();
+		}
+	}
 }
