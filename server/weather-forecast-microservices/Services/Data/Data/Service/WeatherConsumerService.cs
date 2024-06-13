@@ -1,8 +1,8 @@
-﻿using RabbitMQ.Client;
+﻿using Worker.Repository;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Services;
 using System.Text;
-using Worker.Repository;
 
 namespace Data.Service
 {
@@ -26,8 +26,6 @@ namespace Data.Service
 		{
 			_model.QueueDeclare(currentWeatherQueue, exclusive: false);
 			var consumer = new AsyncEventingBasicConsumer(_model);
-
-			
 
 			consumer.Received += async (model, ea) =>
 			{
