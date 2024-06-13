@@ -56,11 +56,15 @@ namespace Worker
                     response.EnsureSuccessStatusCode();
                     var responseData = await response.Content.ReadAsStringAsync();
 
-                    var result = this._caching.SetCacheResponse("GetDailyWeatherData", responseData);
-                    if (!result)
+                    var daillyWeatherData = this._caching.GetCacheResponse("GetDailyWeatherData");
+                    if(daillyWeatherData == null )
                     {
-                        Exception exception = new Exception("Set Cache Response Failed");
-                        throw exception;
+                        var result = this._caching.SetCacheResponse("GetDailyWeatherData", responseData);
+                        if (!result)
+                        {
+                            Exception exception = new Exception("Set Cache Response Failed");
+                            throw exception;
+                        }
                     }
                 }
                 catch (Exception e)
