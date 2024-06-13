@@ -1,15 +1,12 @@
-﻿using Newtonsoft.Json;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Services;
-using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Worker.Repository;
 
 namespace Data.Service
 {
-	public class WeatherConsumerService : IWeatherConsumerService, IDisposable
+    public class WeatherConsumerService : IWeatherConsumerService, IDisposable
 	{
 		private readonly IModel _model;
 		private readonly IConnection _connection;
@@ -25,19 +22,13 @@ namespace Data.Service
 			this._caching = caching;
 		}
 
-		public async Task GetCurrentWeatherData(string lat, string lon)
+		public async Task GetCurrentWeatherData()
 		{
 			_model.QueueDeclare(currentWeatherQueue, exclusive: false);
 			var consumer = new AsyncEventingBasicConsumer(_model);
 
-			var currentWeatherData = this._caching.GetCacheResponse("GetDailyWeatherData");
-			if (string.IsNullOrEmpty(currentWeatherData))
-			{
-				Exception exception = new Exception("Get Cache Response Failed");
-				throw exception;
-			}
+			
 
-			var responseBody = Encoding.UTF8.GetBytes(currentWeatherData);
 			consumer.Received += async (model, ea) =>
 			{
 				try
@@ -46,7 +37,16 @@ namespace Data.Service
 
 					var input = Encoding.UTF8.GetString(ea.Body.ToArray()).Split(';');
 
-					_model.BasicPublish("", ea.BasicProperties.ReplyTo, null, responseBody);
+                    var currentWeatherData = this._caching.GetCacheResponse("GetDailyWeatherData");
+                    if (string.IsNullOrEmpty(currentWeatherData))
+                    {
+                        Exception exception = new Exception("Get Cache Response Failed");
+                        throw exception;
+                    }
+
+                    var responseBody = Encoding.UTF8.GetBytes(currentWeatherData);
+
+                    _model.BasicPublish("", ea.BasicProperties.ReplyTo, null, responseBody);
 					await Task.CompletedTask;
 				}
 				catch (Exception ex)
