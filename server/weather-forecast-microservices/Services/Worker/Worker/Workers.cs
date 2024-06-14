@@ -38,13 +38,16 @@ namespace Worker
                 }
 
                 // Gọi API khi khởi động
-                await CallApiAsync("21.0294498", "105.8544441", "10", stoppingToken);
+                await CallApiAsync("21.0294498", "105.8544441", "10", stoppingToken, 1);
+
+
+                await CallApiAsync("10.7758439", "106.7017555", "10", stoppingToken, 2);
 
                 await Task.Delay(20000, stoppingToken);
             }
         }
 
-        private async Task CallApiAsync(string latitude, string longitude, string count, CancellationToken stoppingToken)
+        private async Task CallApiAsync(string latitude, string longitude, string count, CancellationToken stoppingToken, int index)
         {
             using (var client = _httpClientFactory.CreateClient())
             {
@@ -59,10 +62,10 @@ namespace Worker
                     response.EnsureSuccessStatusCode();
                     var responseData = await response.Content.ReadAsStringAsync();
 
-                    var daillyWeatherData = this._caching.GetCacheResponse("GetDailyWeatherData");
+                    var daillyWeatherData = this._caching.GetCacheResponse($"GetDailyWeatherData{index}");
                     if(daillyWeatherData == null )
                     {
-                        var result = this._caching.SetCacheResponse("GetDailyWeatherData", responseData);
+                        var result = this._caching.SetCacheResponse($"GetDailyWeatherData{index}", responseData);
                         if (!result)
                         {
                             Exception exception = new Exception("Set Cache Response Failed");
@@ -75,13 +78,18 @@ namespace Worker
                         var dbContext = scope.ServiceProvider.GetRequiredService<WorkerDbContext>();
 
                         // Thêm dữ liệu vào cơ sở dữ liệu
-                        var newEntity = new WeatherData { Id = 1, DataDaily = responseData };
-                        if(dbContext.WeatherDatas.FirstOrDefault(e => e.Id == 1) != null)
+                        var newEntity = new WeatherData { Id = index, DataDaily = responseData };
+                        if(dbContext.WeatherDatas.FirstOrDefault(e => e.Id == index) != null)
                         {
-                            var item = dbContext.WeatherDatas.FirstOrDefault(e => e.Id == 1);
+                            var item = dbContext.WeatherDatas.FirstOrDefault(e => e.Id == index);
                             dbContext.WeatherDatas.Remove(item);
                             dbContext.SaveChanges();
 
+                            await dbContext.WeatherDatas.AddAsync(newEntity, stoppingToken);
+                            await dbContext.SaveChangesAsync(stoppingToken);
+                        }
+                        else
+                        {
                             await dbContext.WeatherDatas.AddAsync(newEntity, stoppingToken);
                             await dbContext.SaveChangesAsync(stoppingToken);
                         }
