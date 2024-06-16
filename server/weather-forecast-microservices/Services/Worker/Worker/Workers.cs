@@ -36,18 +36,25 @@ namespace Worker
                 {
                     _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 }
+                int index = 1;
+                var provinces = new Provinces();
 
-                // Gọi API khi khởi động
-                await CallApiAsync("21.0294498", "105.8544441", "10", stoppingToken, 1);
-
-
-                await CallApiAsync("10.7758439", "106.7017555", "10", stoppingToken, 2);
+                foreach (var item in provinces.provinces)
+                {
+                    // Gọi API khi khởi động
+                    await CallApiAsync(item.GetType().GetProperty("name")?.GetValue(item, null)?.ToString() ?? string.Empty,
+                        item.GetType().GetProperty("lat")?.GetValue(item, null)?.ToString() ?? string.Empty,
+                        item.GetType().GetProperty("lon")?.GetValue(item, null)?.ToString() ?? string.Empty,
+                        item.GetType().GetProperty("seq")?.GetValue(item, null)?.ToString() ?? string.Empty,
+                        stoppingToken, index);
+                    index++;
+                }
 
                 await Task.Delay(20000, stoppingToken);
             }
         }
 
-        private async Task CallApiAsync(string latitude, string longitude, string count, CancellationToken stoppingToken, int index)
+        private async Task CallApiAsync(string province, string latitude, string longitude, string count, CancellationToken stoppingToken, int index)
         {
             using (var client = _httpClientFactory.CreateClient())
             {
@@ -62,10 +69,10 @@ namespace Worker
                     response.EnsureSuccessStatusCode();
                     var responseData = await response.Content.ReadAsStringAsync();
 
-                    var daillyWeatherData = this._caching.GetCacheResponse($"GetDailyWeatherData{index}");
+                    var daillyWeatherData = this._caching.GetCacheResponse($"GetDaily{province}Data{index}");
                     if(daillyWeatherData == null )
                     {
-                        var result = this._caching.SetCacheResponse($"GetDailyWeatherData{index}", responseData);
+                        var result = this._caching.SetCacheResponse($"GetDaily{province}Data{index}", responseData);
                         if (!result)
                         {
                             Exception exception = new Exception("Set Cache Response Failed");
@@ -104,5 +111,6 @@ namespace Worker
                 }
             }
         }
+
     }
 }
