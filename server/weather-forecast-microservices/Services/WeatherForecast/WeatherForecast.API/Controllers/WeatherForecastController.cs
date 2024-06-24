@@ -16,7 +16,7 @@ namespace WeatherForecast.API.Controllers
             this._weatherConsumerService = weatherConsumerService;
         }
 
-        [HttpGet("current-weather")]
+        [HttpGet("api/current-weather")]
         public async Task<IActionResult> GetCurrentWeather(string province, string lat, string lon)
         {
             try
@@ -30,7 +30,7 @@ namespace WeatherForecast.API.Controllers
             }
         }
 
-        [HttpGet("weather-forecast")]
+        [HttpGet("api/weather-forecast")]
         public async Task<IActionResult> GetWeatherForecast(string province, string lat, string lon)
         {
             try

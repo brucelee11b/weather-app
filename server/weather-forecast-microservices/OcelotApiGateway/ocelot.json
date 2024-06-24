@@ -1,7 +1,7 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/current-weather",
+      "DownstreamPathTemplate": "api/current-weather",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -9,11 +9,11 @@
           "Port": 5051
         }
       ],
-      "UpstreamPathTemplate": "/gateway/current-weather",
+      "UpstreamPathTemplate": "/current-weather",
       "UpstreamHttpMethod": [ "Get" ]
     },
     {
-      "DownstreamPathTemplate": "/weather-forecast",
+      "DownstreamPathTemplate": "api/weather-forecast",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -21,11 +21,11 @@
           "Port": 5051
         }
       ],
-      "UpstreamPathTemplate": "/gateway/weather-forecast",
+      "UpstreamPathTemplate": "/weather-forecast",
       "UpstreamHttpMethod": [ "Get" ]
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:5000"
+    "BaseUrl": "https://localhost:6000"
   }
 }
