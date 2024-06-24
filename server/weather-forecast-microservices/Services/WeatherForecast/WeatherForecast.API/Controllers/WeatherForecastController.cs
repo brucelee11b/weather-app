@@ -17,11 +17,11 @@ namespace WeatherForecast.API.Controllers
         }
 
         [HttpGet("current-weather")]
-        public async Task<IActionResult> GetCurrentWeather(string lat, string lon)
+        public async Task<IActionResult> GetCurrentWeather(string province, string lat, string lon)
         {
             try
             {
-                var currentWeather = await _weatherForecastService.GetCurrentWeather(lat, lon);
+                var currentWeather = await _weatherForecastService.GetCurrentWeather(province,lat, lon);
                 return Ok(currentWeather);
             }
             catch (HttpRequestException ex)
@@ -31,11 +31,11 @@ namespace WeatherForecast.API.Controllers
         }
 
         [HttpGet("weather-forecast")]
-        public async Task<IActionResult> GetWeatherForecast(string lat, string lon)
+        public async Task<IActionResult> GetWeatherForecast(string province, string lat, string lon)
         {
             try
             {
-                var weatherForecast = await _weatherForecastService.GetWeatherForecast(lat, lon);
+                var weatherForecast = await _weatherForecastService.GetWeatherForecast(province, lat, lon);
                 return Ok(weatherForecast);
             }
             catch (HttpRequestException ex)

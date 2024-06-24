@@ -1,5 +1,4 @@
-﻿using Worker.Repository;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using StackExchange.Redis;
@@ -21,7 +20,7 @@ namespace Worker.Repository
             return this._distributedCache.GetString(cacheKey);
         }
 
-        public bool SetCacheResponse(string cacheKey, object response, TimeSpan? timeOut = null)
+        public bool SetCacheResponse(string cacheKey, string response, TimeSpan? timeOut = null)
         {
             if (timeOut == null)
             {
@@ -33,13 +32,7 @@ namespace Worker.Repository
                 return false;
             }
 
-            var serializerResponse = JsonConvert.SerializeObject(response, new JsonSerializerSettings()
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
-            });
-
-            this._distributedCache.SetString(cacheKey, serializerResponse, new DistributedCacheEntryOptions
+            this._distributedCache.SetString(cacheKey, response, new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = timeOut,
             });

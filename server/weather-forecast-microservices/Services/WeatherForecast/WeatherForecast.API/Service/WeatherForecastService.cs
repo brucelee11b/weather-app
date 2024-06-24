@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using Newtonsoft.Json;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Services;
 using System.Text;
@@ -22,7 +23,7 @@ namespace WeatherForecast.API.Service
         const string currentWeatherQuece = "current-weather-queue";
         const string weatherForecastQueue = "weather-forecast-queue";
 
-        public async Task<CurrentWeather> GetCurrentWeather(string lat, string lon)
+        public async Task<CurrentWeather> GetCurrentWeather(string province, string lat, string lon)
         {
             try
             {
@@ -55,7 +56,7 @@ namespace WeatherForecast.API.Service
                 properties.ReplyTo = replyQueue.QueueName;
                 properties.CorrelationId = Guid.NewGuid().ToString();
 
-                var message = $"{lat};{lon}";
+                var message = $"{province};{lat};{lon}";
                 var body = Encoding.UTF8.GetBytes(message);
 
                 Console.WriteLine($"Sending Request: {properties.CorrelationId} - message: {message}");
@@ -71,7 +72,7 @@ namespace WeatherForecast.API.Service
             }
         }
 
-        public async Task<DailyWeather> GetWeatherForecast(string lat, string lon)
+        public async Task<DailyWeather> GetWeatherForecast(string province, string lat, string lon)
         {
             try
             {
@@ -104,7 +105,7 @@ namespace WeatherForecast.API.Service
                 properties.ReplyTo = replyQueue.QueueName;
                 properties.CorrelationId = Guid.NewGuid().ToString();
 
-                var message = $"{lat};{lon}";
+                var message = $"{province};{lat};{lon}";
                 var body = Encoding.UTF8.GetBytes(message);
 
                 Console.WriteLine($"Sending Request: {properties.CorrelationId} - message: {message}");

@@ -3,6 +3,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Services;
 using System.Text;
+using Worker;
 
 namespace Data.Service
 {
@@ -35,10 +36,10 @@ namespace Data.Service
 
 					var input = Encoding.UTF8.GetString(ea.Body.ToArray()).Split(';');
 
-                    var currentWeatherData = this._caching.GetCacheResponse("GetDailyWeatherData");
+                    var currentWeatherData = this._caching.GetCacheResponse($"CurrentWeatherData-province:{input[0]}-lat:{input[1]}-lon:{input[2]}");
                     if (string.IsNullOrEmpty(currentWeatherData))
                     {
-                        Exception exception = new Exception("Get Cache Response Failed");
+                        Exception exception = new("Get Cache Response Failed");
                         throw exception;
                     }
 
@@ -72,10 +73,10 @@ namespace Data.Service
 
 					var input = Encoding.UTF8.GetString(ea.Body.ToArray()).Split(';');
 
-					var daillyWeatherData = this._caching.GetCacheResponse("GetDailyWeatherData");
+					var daillyWeatherData = this._caching.GetCacheResponse($"DailyWeatherData-province:{input[0]}-lat:{input[1]}-lon:{input[2]}");
 					if (string.IsNullOrEmpty(daillyWeatherData))
 					{
-						Exception exception = new Exception("Get Cache Response Failed");
+						Exception exception = new("Get Cache Response Failed");
 						throw exception;
 					}
 					var responseBody = Encoding.UTF8.GetBytes(daillyWeatherData);

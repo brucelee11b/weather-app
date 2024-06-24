@@ -1,10 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using System;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Worker.Repository;
 
 namespace Worker
@@ -16,13 +10,11 @@ namespace Worker
         private readonly string apiKey = "a138902a1200a09b2c57e0119815c601";
         private readonly ICaching _caching;
         private readonly IServiceProvider _serviceProvider;
-
-        const string currentWeatherQueue = "current-weather-queue";
-        const string weatherForecastQueue = "weather-forecast-queue";
+        private List<WeatherData> weatherDatas = [];
 
         public Workers(ILogger<Workers> logger, IHttpClientFactory httpClientFactory, ICaching caching, IServiceProvider serviceProvider)
         {
-            _logger = logger; 
+            _logger = logger;
             _httpClientFactory = httpClientFactory;
             _caching = caching;
             _serviceProvider = serviceProvider;
@@ -30,87 +22,84 @@ namespace Worker
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                if (_logger.IsEnabled(LogLevel.Information))
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                }
-                int index = 1;
-                var provinces = new Provinces();
+                    if (_logger.IsEnabled(LogLevel.Information))
+                    {
+                        _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                    }
 
-                foreach (var item in provinces.provinces)
-                {
-                    // Gọi API khi khởi động
-                    await CallApiAsync(item.GetType().GetProperty("name")?.GetValue(item, null)?.ToString() ?? string.Empty,
-                        item.GetType().GetProperty("lat")?.GetValue(item, null)?.ToString() ?? string.Empty,
-                        item.GetType().GetProperty("lon")?.GetValue(item, null)?.ToString() ?? string.Empty,
-                        item.GetType().GetProperty("seq")?.GetValue(item, null)?.ToString() ?? string.Empty,
-                        stoppingToken, index);
-                    index++;
-                }
+                    weatherDatas.Clear();
+                    foreach (var item in Model.Provinces)
+                    {
+                        // Gọi API khi khởi động
+                        await CallApiAsync(
+                            item.Id,
+                            item.Name ?? string.Empty,
+                            item.Lat ?? string.Empty,
+                            item.Lon ?? string.Empty,
+                            item.Seq ?? string.Empty,
+                            stoppingToken);
+                    }
 
-                await Task.Delay(20000, stoppingToken);
+                    using var scope = _serviceProvider.CreateScope();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<WorkerDbContext>();
+                    dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE \"WeatherDatas\"");
+                    await dbContext.WeatherDatas.AddRangeAsync(weatherDatas, stoppingToken);
+                    await dbContext.SaveChangesAsync(stoppingToken);
+                    _logger.LogInformation("Data added to the database.");
+
+                    await Task.Delay(20000, stoppingToken);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error calling API: {e.Message}");
             }
         }
 
-        private async Task CallApiAsync(string province, string latitude, string longitude, string count, CancellationToken stoppingToken, int index)
+        private async Task CallApiAsync(int index, string province, string latitude, string longitude, string count, CancellationToken stoppingToken)
         {
-            using (var client = _httpClientFactory.CreateClient())
+            using var client = _httpClientFactory.CreateClient();
+            try
             {
-                try
+                client.BaseAddress = new Uri("https://api.openweathermap.org/");
+
+                var version = "data/2.5/";
+                string url = $"{version}forecast?lat={latitude}&lon={longitude}&cnt={count}&appid={apiKey}&units=metric";
+                HttpResponseMessage response = await client.GetAsync(url.ToString(), stoppingToken);
+                response.EnsureSuccessStatusCode();
+                var dailyData = await response.Content.ReadAsStringAsync(stoppingToken);
+
+                var result = this._caching.SetCacheResponse($"DailyWeatherData-province:{province}-lat:{latitude}-lon:{longitude}", dailyData);
+                if (!result)
                 {
-                    var version = "data/2.5/";
-                    StringBuilder url = new StringBuilder();
-                    url.Append($"{version}forecast?lat={latitude}&lon={longitude}&cnt={count}&appid={apiKey}&units=metric");
-
-                    client.BaseAddress = new Uri("https://api.openweathermap.org/");
-                    HttpResponseMessage response = await client.GetAsync(url.ToString());
-                    response.EnsureSuccessStatusCode();
-                    var responseData = await response.Content.ReadAsStringAsync();
-
-                    var daillyWeatherData = this._caching.GetCacheResponse($"GetDaily{province}Data{index}");
-                    if(daillyWeatherData == null )
-                    {
-                        var result = this._caching.SetCacheResponse($"GetDaily{province}Data{index}", responseData);
-                        if (!result)
-                        {
-                            Exception exception = new Exception("Set Cache Response Failed");
-                            throw exception;
-                        }
-                    }
-
-                    using (var scope = _serviceProvider.CreateScope())
-                    {
-                        var dbContext = scope.ServiceProvider.GetRequiredService<WorkerDbContext>();
-
-                        // Thêm dữ liệu vào cơ sở dữ liệu
-                        var newEntity = new WeatherData { Id = index, DataDaily = responseData };
-                        if(dbContext.WeatherDatas.FirstOrDefault(e => e.Id == index) != null)
-                        {
-                            var item = dbContext.WeatherDatas.FirstOrDefault(e => e.Id == index);
-                            dbContext.WeatherDatas.Remove(item);
-                            dbContext.SaveChanges();
-
-                            await dbContext.WeatherDatas.AddAsync(newEntity, stoppingToken);
-                            await dbContext.SaveChangesAsync(stoppingToken);
-                        }
-                        else
-                        {
-                            await dbContext.WeatherDatas.AddAsync(newEntity, stoppingToken);
-                            await dbContext.SaveChangesAsync(stoppingToken);
-                        }
-
-                        _logger.LogInformation("Data added to the database.");
-                    }
-
+                    Exception exception = new("Set Cache Response Failed");
+                    throw exception;
                 }
-                catch (Exception e)
+                _logger.LogInformation($"Save DailyWeatherData--province:{province}-lat:{latitude}-lon:{longitude} success");
+                
+                url = $"{version}weather?lat={latitude}&lon={longitude}&appid={apiKey}&units=metric";
+                response = await client.GetAsync(url.ToString(), stoppingToken);
+                response.EnsureSuccessStatusCode();
+                var currentData = await response.Content.ReadAsStringAsync(stoppingToken);
+
+                result = this._caching.SetCacheResponse($"CurrentWeatherData-province:{province}-lat:{latitude}-lon:{longitude}", currentData);
+                if (!result)
                 {
-                    Console.WriteLine($"Error calling API: {e.Message}");
+                    Exception exception = new("Set Cache Response Failed");
+                    throw exception;
                 }
+                _logger.LogInformation($"Save CurrentWeatherData--province:{province}-lat:{latitude}-lon:{longitude} success");
+
+                this.weatherDatas.Add(new WeatherData { Id = index, DataDaily = dailyData });
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error calling API: {e.Message}");
             }
         }
-
     }
 }
