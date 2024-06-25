@@ -15,17 +15,7 @@ export const fetchWeatherData = async (
   // }
 
   const result = await (await fetch(url)).json();
-  console.log(url);
-
-  console.log(result);
-  console.log(result.main);
-
-  var jsonString = JSON.stringify(result);
-  console.log(jsonString);
-
-  const JSobj = JSON.parse(jsonString);
-  console.log(JSobj);
-  return JSobj;
+  return result;
 
   // const result = {
   //   main: {

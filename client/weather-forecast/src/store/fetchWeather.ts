@@ -44,10 +44,14 @@ export const transformWeatherData = (
   weather.weather = res[0].weather[0];
   weather.main = {
     ...weather.main,
-    temp: kelvinToCelcius(weather.main.temp),
-    feelsLike: kelvinToCelcius(weather.main.feelsLike),
-    tempMax: kelvinToCelcius(weather.main.tempMax),
-    tempMin: kelvinToCelcius(weather.main.tempMin),
+    // temp: kelvinToCelcius(weather.main.temp),
+    // feelsLike: kelvinToCelcius(weather.main.feelsLike),
+    // tempMax: kelvinToCelcius(weather.main.tempMax),
+    // tempMin: kelvinToCelcius(weather.main.tempMin),
+    temp: Math.round(weather.main.temp),
+    feelsLike: Math.round(weather.main.feelsLike),
+    tempMax: Math.round(weather.main.tempMax),
+    tempMin: Math.round(weather.main.tempMin),
   };
   weather.wind.speed = Math.round(weather.wind.speed * 3.6);
 
@@ -57,8 +61,10 @@ export const transformWeatherData = (
     forecast.push({
       day: next7Days[index],
       temp: {
-        tempMax: kelvinToCelcius(i.main.tempMax),
-        tempMin: kelvinToCelcius(i.main.tempMin),
+        // tempMax: kelvinToCelcius(i.main.tempMax),
+        // tempMin: kelvinToCelcius(i.main.tempMin),
+        tempMax: Math.round(i.main.tempMax),
+        tempMin: Math.round(i.main.tempMin),
       },
       weather: {
         id: i.weather[0].id,
