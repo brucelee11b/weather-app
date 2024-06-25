@@ -8,13 +8,16 @@ interface ISuggestionProps {
   hideSuggestionFn: Function;
   lat: number;
   lon: number;
+  province: string;
 }
 
 const Suggestion: React.FC<ISuggestionProps> = (props) => {
   const dispatch = useDispatch<ThunkDispatch<any, any, any>>();
 
   const onClick = () => {
-    dispatch(fetchWeather({ lat: props.lat, lon: props.lon }));
+    dispatch(
+      fetchWeather({ province: props.province, lat: props.lat, lon: props.lon })
+    );
     setTimeout(() => {
       props.hideSuggestionFn();
     }, 400);

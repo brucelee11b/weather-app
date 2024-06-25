@@ -40,7 +40,7 @@ namespace Worker
                             item.Name ?? string.Empty,
                             item.Lat ?? string.Empty,
                             item.Lon ?? string.Empty,
-                            item.Seq ?? string.Empty,
+                            "7",
                             stoppingToken);
                     }
 

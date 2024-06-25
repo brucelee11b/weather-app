@@ -16,10 +16,10 @@ builder.Services.AddDbContext<WorkerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DataBase")));
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-    ConnectionMultiplexer.Connect("172.21.16.1:6379,abortConnect=false"));
+    ConnectionMultiplexer.Connect("host.docker.internal:6379,abortConnect=false"));
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-	options.Configuration = "172.21.16.1:6379,abortConnect=false";
+	options.Configuration = "host.docker.internal:6379,abortConnect=false";
 	options.InstanceName = "SampleInstance"; // Optional instance name
 });
 

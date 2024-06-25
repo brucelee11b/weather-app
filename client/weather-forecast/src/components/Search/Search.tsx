@@ -38,8 +38,9 @@ const Search = () => {
   const showPosition = (position: any) => {
     dispatch(
       fetchWeather({
-        lat: position.coords.latitude,
-        lon: position.coords.longitude,
+        province: 'Ha%20Noi',
+        lat: 21.0245,
+        lon: 105.8412,
       })
     );
   };
@@ -71,6 +72,7 @@ const Search = () => {
             <Suggestion
               key={i}
               label={s.name}
+              province={s.name}
               lat={s.lat}
               lon={s.lon}
               hideSuggestionFn={() => {

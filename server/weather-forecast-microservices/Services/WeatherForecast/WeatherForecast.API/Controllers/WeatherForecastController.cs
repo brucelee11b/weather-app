@@ -16,12 +16,17 @@ namespace WeatherForecast.API.Controllers
             this._weatherConsumerService = weatherConsumerService;
         }
 
-        [HttpGet("api/current-weather")]
+        [HttpGet("/api/current-weather")]
         public async Task<IActionResult> GetCurrentWeather(string province, string lat, string lon)
         {
             try
             {
                 var currentWeather = await _weatherForecastService.GetCurrentWeather(province,lat, lon);
+                if (currentWeather == null)
+                {
+                    return StatusCode(500, "Not found!");
+                }
+
                 return Ok(currentWeather);
             }
             catch (HttpRequestException ex)
@@ -30,12 +35,17 @@ namespace WeatherForecast.API.Controllers
             }
         }
 
-        [HttpGet("api/weather-forecast")]
+        [HttpGet("/api/weather-forecast")]
         public async Task<IActionResult> GetWeatherForecast(string province, string lat, string lon)
         {
             try
             {
                 var weatherForecast = await _weatherForecastService.GetWeatherForecast(province, lat, lon);
+                if (weatherForecast == null)
+                {
+                    return StatusCode(500, "Not found!");
+                }
+
                 return Ok(weatherForecast);
             }
             catch (HttpRequestException ex)

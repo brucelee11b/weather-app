@@ -45,6 +45,12 @@ namespace WeatherForecast.API.Service
                     var message = Encoding.UTF8.GetString(body);
                     Console.WriteLine($"Reply Recieved: {message}");
 
+                    if (message.Contains("Get Cache Response Failed"))
+                    {
+                        await Task.CompletedTask;
+                        tcs.SetResult(null);
+                    }
+
                     var result = StringExtensions.DeserializeObject<CurrentWeather>(message);
                     await Task.CompletedTask;
                     tcs.SetResult(result);
@@ -93,6 +99,12 @@ namespace WeatherForecast.API.Service
                     var body = ea.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
                     Console.WriteLine($"Reply Recieved: {message}");
+
+                    if (message.Contains("Get Cache Response Failed"))
+                    {
+                        await Task.CompletedTask;
+                        tcs.SetResult(null);
+                    }
 
                     var result = StringExtensions.DeserializeObject<DailyWeather>(message);
                     await Task.CompletedTask;
