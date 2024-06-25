@@ -24,8 +24,6 @@ const Search = () => {
     }
     setShowSuggestions(true);
     fetchCities(searchTerm).then((res) => {
-      console.log('res ', res);
-
       setSuggestions(res);
     });
   }, [searchTerm]);

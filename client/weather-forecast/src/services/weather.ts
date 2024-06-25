@@ -3,8 +3,6 @@ const baseUrl = 'http://localhost:5000';
 export const fetchWeatherData = async (
   city: string | { province: string; lat: number; lon: number }
 ) => {
-  console.log(city);
-
   let url = '';
   if (typeof city === 'object') {
     url = `${baseUrl}/current-weather?province=${city.province}&lat=${city.lat}&lon=${city.lon}`;

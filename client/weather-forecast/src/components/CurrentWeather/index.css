@@ -1,3 +1,7 @@
+.search-result {
+  background-color: #c6f0f8;
+}
+
 .weather-container {
   background-color: rgb(255, 255, 255);
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
