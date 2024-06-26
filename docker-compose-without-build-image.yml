@@ -29,18 +29,12 @@ services:
     container_name: Weather
     ports:
       - '3000:80'
-    build:
-      context: client/weather-forecast
-      dockerfile: Dockerfile
 
   apigateway:
     image: ocelotapigateway:latest
     container_name: APIGateway
     ports:
       - '5000:8080'
-    build:
-      context: server/weather-forecast-microservices
-      dockerfile: ApiGateways/OcelotApiGateway/Dockerfile
 
   weather.api:
     image: weatherforecastapi:latest
@@ -53,9 +47,6 @@ services:
         condition: service_healthy
     links:
       - rabbitmq
-    build:
-      context: server/weather-forecast-microservices
-      dockerfile: Services/WeatherForecast/WeatherForecast.API/Dockerfile
 
   data:
     image: data:latest
@@ -66,9 +57,6 @@ services:
         condition: service_healthy
     links:
       - rabbitmq
-    build:
-      context: server/weather-forecast-microservices
-      dockerfile: Services/Data/Data/Dockerfile
 
   worker:
     image: worker:latest
@@ -76,6 +64,3 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    build:
-      context: server/weather-forecast-microservices
-      dockerfile: Services/Worker/Worker/Dockerfile
