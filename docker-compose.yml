@@ -1,0 +1,41 @@
+version: '1.0'
+
+services:
+  redis:
+    image: redis:7.0-alpine
+    container_name: Redis
+    ports:
+      - '6379:6379'
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: RabbitMQ
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+
+  weather:
+    image: weatherforecast:latest
+    container_name: Weather
+    ports:
+      - '3000:80'
+
+  apigateway:
+    image: ocelotapigateway:latest
+    container_name: APIGateway
+    ports:
+      - '5000:8080'
+
+  weather.api:
+    image: weatherforecastapi:latest
+    container_name: WeatherAPI
+    ports:
+      - '5001:8080'
+
+  data:
+    image: data:latest
+    container_name: Data
+
+  worker:
+    image: worker:latest
+    container_name: Worker
