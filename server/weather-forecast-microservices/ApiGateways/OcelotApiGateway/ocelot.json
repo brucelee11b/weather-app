@@ -1,14 +1,11 @@
 {
-  "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:5000"
-  },
   "Routes": [
     {
       "DownstreamPathTemplate": "/api/current-weather",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
+          "Host": "host.docker.internal",
           "Port": 5001
         }
       ],
@@ -20,7 +17,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
+          "Host": "host.docker.internal",
           "Port": 5001
         }
       ],

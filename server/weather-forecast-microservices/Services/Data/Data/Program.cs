@@ -11,8 +11,7 @@ builder.Services.AddMessageBroker(builder.Configuration);
 builder.Services.AddSingleton<IWeatherConsumerService, WeatherConsumerService>();
 builder.Services.AddSingleton<IRabbitMQService, RabbitMQService>();
 builder.Services.AddSingleton<ICaching, Caching>();
-
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect("localhost:6379"));
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
 
 var app = builder.Build();
 
