@@ -1,24 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Worker.Repository;
+using Worker.Services;
 
 namespace Worker
 {
-    public class Workers : BackgroundService
+    public class Workers(ILogger<Workers> logger, IHttpClientFactory httpClientFactory, ICaching caching, IServiceProvider serviceProvider) : BackgroundService
     {
-        private readonly ILogger<Workers> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<Workers> _logger = logger;
+        private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
         private readonly string apiKey = "a138902a1200a09b2c57e0119815c601";
-        private readonly ICaching _caching;
-        private readonly IServiceProvider _serviceProvider;
-        private List<WeatherData> weatherDatas = [];
-
-        public Workers(ILogger<Workers> logger, IHttpClientFactory httpClientFactory, ICaching caching, IServiceProvider serviceProvider)
-        {
-            _logger = logger;
-            _httpClientFactory = httpClientFactory;
-            _caching = caching;
-            _serviceProvider = serviceProvider;
-        }
+        private readonly ICaching _caching = caching;
+        private readonly List<WeatherData> weatherDatas = [];
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -41,14 +33,17 @@ namespace Worker
                             item.Lat ?? string.Empty,
                             item.Lon ?? string.Empty,
                             "7",
-                            stoppingToken);
+                        stoppingToken);
                     }
 
-                    using var scope = _serviceProvider.CreateScope();
-                    var dbContext = scope.ServiceProvider.GetRequiredService<WorkerDbContext>();
-                    dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE \"WeatherDatas\"");
-                    await dbContext.WeatherDatas.AddRangeAsync(weatherDatas, stoppingToken);
-                    await dbContext.SaveChangesAsync(stoppingToken);
+                    using (var scope = this._serviceProvider.CreateScope())
+                    {
+                        var dbContext = scope.ServiceProvider.GetService<WorkerDbContext>();
+                        dbContext.Database.ExecuteSqlRaw("TRUNCATE TABLE \"WeatherDatas\"");
+                        await dbContext.WeatherDatas.AddRangeAsync(weatherDatas, stoppingToken);
+                        await dbContext.SaveChangesAsync(stoppingToken);
+                    }
+
                     _logger.LogInformation("Data added to the database.");
 
                     await Task.Delay(20000, stoppingToken);

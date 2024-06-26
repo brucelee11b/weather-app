@@ -1,6 +1,4 @@
-﻿using Data.Service;
-using Microsoft.AspNetCore.Mvc;
-using System.Text;
+﻿using Microsoft.AspNetCore.Mvc;
 using WeatherForecast.API.Service;
 
 namespace WeatherForecast.API.Controllers
@@ -9,11 +7,9 @@ namespace WeatherForecast.API.Controllers
     public class WeatherForecastController : ControllerBase
     {
         private readonly IWeatherForecastService _weatherForecastService;
-        private readonly IWeatherConsumerService _weatherConsumerService;
-        public WeatherForecastController(IWeatherForecastService weatherForecastService, IWeatherConsumerService weatherConsumerService)
+        public WeatherForecastController(IWeatherForecastService weatherForecastService)
         {
             this._weatherForecastService = weatherForecastService;
-            this._weatherConsumerService = weatherConsumerService;
         }
 
         [HttpGet("/api/current-weather")]
@@ -52,19 +48,6 @@ namespace WeatherForecast.API.Controllers
             {
                 return StatusCode(500, $"Error: {ex.Message}");
             }
-        }
-
-        private static string GenarateCacheKeyFromRequest(HttpRequest request)
-        {
-            var keyBuilder = new StringBuilder();
-            keyBuilder.Append($"{request.Path}");
-
-            foreach (var (key, value) in request.Query.OrderBy(x => x.Key))
-            {
-                keyBuilder.Append($"|{key}-{value}");
-            }
-
-            return keyBuilder.ToString();
         }
     }
 }

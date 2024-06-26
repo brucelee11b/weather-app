@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\RabbitMQ\RabbitMQ\RabbitMQ.csproj" />
-    <ProjectReference Include="..\..\Data\Data\Data.csproj" />
   </ItemGroup>
 
 </Project>

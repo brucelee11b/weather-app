@@ -10,13 +10,10 @@ namespace WeatherForecast.API.Service
 {
     public class WeatherForecastService : IWeatherForecastService
     {
-        private readonly HttpClient _httpClient;
         private readonly IRabbitMQService _rabbitMqService;
 
         public WeatherForecastService(IRabbitMQService rabbitMqService)
         {
-            this._httpClient = new HttpClient();
-            this._httpClient.BaseAddress = new Uri("http://localhost:5005/");
             _rabbitMqService = rabbitMqService;
         }
 

@@ -1,8 +1,5 @@
 using WeatherForecast.API.Service;
 using RabbitMQ.Extensions;
-using Data.Service;
-using Worker.Repository;
-using Worker.Installers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,9 +13,6 @@ builder.Services.AddSwaggerGen();
 
 // DI
 builder.Services.AddScoped<IWeatherForecastService, WeatherForecastService>();
-builder.Services.AddScoped<IWeatherConsumerService, WeatherConsumerService>();
-builder.Services.InstallerServiceInAssembly(builder.Configuration);
-builder.Services.AddScoped<ICaching, Caching>();
 
 // Cors
 builder.Services.AddCors(options =>

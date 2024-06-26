@@ -1,9 +1,7 @@
-﻿using Worker.Repository;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Services;
 using System.Text;
-using Worker;
 
 namespace Data.Service
 {
